@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "My-App",
-    "slug": "My-App",
+    "slug": "project",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +37,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e6f0986b-33cd-486c-89ac-18447a68dc3b"
+      }
+    },
+    "owner": "ililililili"
   }
 }
