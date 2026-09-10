@@ -133,7 +133,7 @@ export default function HomeScreen() {
       <View style={styles.overlay}>
         <Text style={styles.title}>홈</Text>
 
-        <Text style={styles.description}>항공편을 검색해보세요.</Text>
+        <Text style={styles.description}></Text>
 
         {/* 출발 / 도착 공항 */}
         <View style={styles.btn}>

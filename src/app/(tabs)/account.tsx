@@ -4,9 +4,14 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import { decode } from "base64-arraybuffer";
 
 const handleLogout = async () => {
   const { error } = await supabase.auth.signOut();
@@ -17,9 +22,12 @@ const handleLogout = async () => {
 };
 
 export default function ServicePage() {
+  const [userId, setUserId] = useState("");
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [memberSince, setMemberSince] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [dividerWidth, setDividerWidth] = useState(0);
   const charWidth = 8;
@@ -37,16 +45,15 @@ export default function ServicePage() {
 
       if (!user) return;
 
+      setUserId(user.id);
       setEmail(user.email ?? "");
-
       setMemberSince(new Date(user.created_at).toLocaleDateString("ko-KR"));
 
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("nickname")
+        .select("nickname, avatar_url")
         .eq("id", user.id)
         .single();
-      console.log(profile);
 
       if (error) {
         console.log(error.message);
@@ -54,10 +61,72 @@ export default function ServicePage() {
       }
 
       setNickname(profile.nickname);
+      setAvatarUrl(profile.avatar_url);
     };
 
     getProfile();
   }, []);
+
+  const pickAndUploadPhoto = async () => {
+    if (!userId) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("권한 필요", "사진 접근 권한을 허용해주세요.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    setUploading(true);
+
+    try {
+      const filePath = `${userId}/profile.jpg`;
+      const arrayBuffer = decode(asset.base64!);
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, arrayBuffer, {
+          contentType: "image/jpeg",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", userId);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert(
+        "업로드 실패",
+        error.message ?? "알 수 없는 오류가 발생했습니다.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <View
       style={{
@@ -77,9 +146,23 @@ export default function ServicePage() {
 
         <View style={styles.profileSection}>
           {/* 프로필 사진 */}
-          <View style={styles.profileImage}>
-            <Text style={styles.imageText}>PHOTO</Text>
-          </View>
+          <Pressable
+            style={styles.profileImage}
+            onPress={pickAndUploadPhoto}
+            disabled={uploading}
+          >
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.profilePhoto} />
+            ) : (
+              <Text style={styles.imageText}>PHOTO</Text>
+            )}
+
+            {uploading && (
+              <View style={styles.uploadOverlay}>
+                <ActivityIndicator color="#fff" size="small" />
+              </View>
+            )}
+          </Pressable>
 
           {/* 기본 정보 */}
           <View style={styles.info}>
@@ -167,6 +250,19 @@ const styles = StyleSheet.create({
     height: 130,
     backgroundColor: "#b8bdd6",
     borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+
+  profilePhoto: {
+    width: "100%",
+    height: "100%",
+  },
+
+  uploadOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
