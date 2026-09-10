@@ -22,7 +22,7 @@ export default function ServicePage() {
   const [memberSince, setMemberSince] = useState("");
 
   const [dividerWidth, setDividerWidth] = useState(0);
-  const charWidth = 8; // "<<" 두 글자 기준 대략적인 폭 (폰트 크기 14 기준, 필요시 조정)
+  const charWidth = 8;
   const repeatCount = Math.floor(dividerWidth / charWidth);
 
   const onDividerLayout = (e: LayoutChangeEvent) => {
@@ -46,6 +46,7 @@ export default function ServicePage() {
         .select("nickname")
         .eq("id", user.id)
         .single();
+      console.log(profile);
 
       if (error) {
         console.log(error.message);
@@ -128,11 +129,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 36, fontWeight: "700", color: "white" },
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F0",
+    backgroundColor: "#e2e5f5",
     borderRadius: 20,
     padding: 22,
     borderWidth: 1,
-    borderColor: "#D5D5D0",
+    borderColor: "#e2e5f5",
   },
 
   passportHeader: {
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 105,
     height: 130,
-    backgroundColor: "#D9D9D4",
+    backgroundColor: "#b8bdd6",
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: "auto",
-    marginBottom: 30,
+    marginBottom: 100,
     height: 52,
     borderRadius: 14,
     backgroundColor: "#fff",

@@ -6,17 +6,18 @@ import HomeHeader from "@/components/HomeHeader";
 
 export default function TabsLayout() {
   return (
-    <View style={{ flex: 1, backgroundColor: "#f7f8fa" }}>
+    <View style={{ flex: 1, backgroundColor: "transparent" }}>
       <StatusBar style="light" />
       <Tabs
         initialRouteName="home"
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          headerTitle: "DAY 1",
-          headerBackButtonDisplayMode: "minimal",
-          sceneStyle: { backgroundColor: "#f7f8fa" },
+          tabBarStyle: { position: "absolute" },
         }}
+        {...({
+          sceneContainerStyle: { backgroundColor: "transparent" },
+        } as any)}
       >
         <Tabs.Screen
           name="home"

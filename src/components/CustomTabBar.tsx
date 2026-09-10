@@ -102,7 +102,13 @@ export default function CustomTabBar({ state, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { backgroundColor: "#131313" },
+  safeArea: {
+    backgroundColor: "transparent",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   bar: {
     backgroundColor: "#2f2f2f",
     borderRadius: 40,
